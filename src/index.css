@@ -1,0 +1,24 @@
+/* Tailwind base, components, and utilities */
+/* These directives must be processed by PostCSS with Tailwind CSS plugin */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional: Custom global styles */
+body {
+  @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-white;
+  font-family: 'Inter', sans-serif;
+}
+
+a {
+  @apply no-underline;
+}
+
+button {
+  @apply cursor-pointer;
+}
+
+.dark {
+  /* Ensure dark mode is applied globally */
+  @apply bg-gray-900 text-white;
+}

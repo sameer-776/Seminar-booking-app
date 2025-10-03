@@ -1,0 +1,24 @@
+{
+  "users": [
+    { "id": 1, "name": "Admin", "email": "admin@poornima.edu.in", "department": "Administration", "role": "admin", "password": "admin" },
+    { "id": 2, "name": "User", "email": "user@poornima.edu.in", "department": "General", "role": "user", "password": "user" },
+    { "id": 3, "name": "Dr. Alan Grant", "email": "alan.g@poornima.edu.in", "department": "Computer Science", "role": "user", "password": "password123" },
+    { "id": 4, "name": "Dr. Ellie Sattler", "email": "ellie.s@poornima.edu.in", "department": "Physics", "role": "user", "password": "password1234" }
+  ],
+
+  "initialSeminars": [
+    { "id": 1, "title": "AI in Modern Business", "date": "2025-10-15", "hall": "Ground Floor seminar hall", "capacity": 150, "description": "Exploring the impact of artificial intelligence on today's business landscape." },
+    { "id": 2, "title": "Advanced Web Development", "date": "2025-10-20", "hall": "1st Floor seminar hall", "capacity": 100, "description": "A deep dive into the latest frameworks and techniques in web development." }
+  ],
+  "initialBookings": {
+    "2025-10-20": [
+      { "id": 1, "title": "Advanced Web Development", "hall": "1st Floor seminar hall", "startTime": "14:00", "endTime": "16:00", "status": "booked", "requestedBy": "User", "department": "Computer Science", "expectedAttendees": 80, "additionalRequirements": "Need 2 wireless mics." }
+    ],
+    "2025-11-12": [
+      { "id": 2, "title": "Quantum Computing Explained", "hall": "Ground Floor seminar hall", "startTime": "10:00", "endTime": "13:00", "status": "rejected", "requestedBy": "User", "department": "Physics", "expectedAttendees": 120, "additionalRequirements": "" }
+    ],
+    "2025-10-22": [
+      { "id": 3, "title": "Intro to Machine Learning", "hall": "Ground Floor seminar hall", "startTime": "11:00", "endTime": "12:00", "status": "pending", "requestedBy": "User", "department": "Data Science", "expectedAttendees": 50, "additionalRequirements": "Podium required." }
+    ]
+  }
+}
