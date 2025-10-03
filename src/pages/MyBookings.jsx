@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Navigate } from 'react-router-dom';
-import { RefreshCw, Edit, Trash2, Info, AlertTriangle } from 'lucide-react'; // Corrected icon name
+import { RefreshCw, Edit, Trash2, Info, AlertTriangle } from 'lucide-react';
 import BookingDetailsModal from '../components/BookingDetailsModal.jsx';
 import EditBookingModal from '../components/EditBookingModal.jsx';
 
@@ -39,9 +39,7 @@ export default function MyBookings({ allBookings, currentUser, handleUpdateBooki
                                         <p className="text-sm text-gray-600 dark:text-gray-400">{booking.hall} on {booking.date}</p>
                                     </div>
                                     <div className="flex items-center gap-2 mt-3 sm:mt-0 flex-shrink-0">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusChip(booking.status)}`}>
-                                            {booking.status}
-                                        </span>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusChip(booking.status)}`}>{booking.status}</span>
                                         <button onClick={() => setDetailsModalData(booking)} title="View Details" className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"><Info size={16}/></button>
                                         {booking.status === 'pending' && (
                                             <button onClick={() => setEditModalData(booking)} title="Edit" className="p-2 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900"><Edit size={16} className="text-blue-600"/></button>
@@ -54,18 +52,16 @@ export default function MyBookings({ allBookings, currentUser, handleUpdateBooki
                                 {booking.originalHall && booking.originalHall !== booking.hall && (
                                     <div className="mt-3 p-2 bg-blue-100 dark:bg-blue-900/50 rounded-md text-xs text-blue-800 dark:text-blue-200 flex items-center gap-2">
                                         <RefreshCw size={14} />
-                                        <span>Admin has re-assigned this booking from <strong>{booking.originalHall}</strong>.</span>
+                                        <span>Re-assigned from <strong>{booking.originalHall}</strong> to <strong>{booking.hall}</strong>.</span>
                                     </div>
                                 )}
                                 {booking.status === 'rejected' && booking.rejectionReason && (
                                     <div className="mt-3 pt-3 border-t dark:border-gray-700">
                                         <p className="text-xs font-semibold text-red-600 dark:text-red-400 flex items-center gap-2">
-                                            <AlertTriangle size={14} /> {/* Corrected icon name */}
+                                            <AlertTriangle size={14} />
                                             Admin's Reason:
                                         </p>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 italic">
-                                            "{booking.rejectionReason}"
-                                        </p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 italic">"{booking.rejectionReason}"</p>
                                     </div>
                                 )}
                             </motion.div>

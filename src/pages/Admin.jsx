@@ -8,12 +8,53 @@ import BookingDetailsModal from '../components/BookingDetailsModal.jsx';
 import AnalyticsDashboard from '../components/AnalyticsDashboard.jsx';
 import UserManagement from '../components/UserManagement.jsx';
 import RejectionModal from '../components/RejectionModal.jsx';
+import { SEMINAR_HALLS } from '../data.js';
 
+// Sub-component for the daily schedule view
+const DailyScheduleView = ({ allBookings }) => {
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
+    const eventsOnDate = allBookings.filter(b => b.date === selectedDate && b.status === 'booked');
+    
+    const eventsByHall = SEMINAR_HALLS.map(hall => ({
+        hallName: hall,
+        events: eventsOnDate.filter(e => e.hall === hall).sort((a, b) => a.startTime.localeCompare(b.startTime))
+    }));
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
+                <div className="flex items-center gap-4 mb-6">
+                    <label htmlFor="schedule-date" className="font-semibold text-gray-700 dark:text-gray-300">Select Date:</label>
+                    <input id="schedule-date" type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="p-2 rounded border bg-transparent dark:border-gray-600 focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div className="space-y-6">
+                    {eventsByHall.map(({ hallName, events }) => (
+                        <div key={hallName}>
+                            <h3 className="text-xl font-bold border-b dark:border-gray-700 pb-2 mb-3">{hallName}</h3>
+                            {events.length > 0 ? (
+                                <ul className="space-y-2">
+                                    {events.map(e => (
+                                        <li key={e.id} className="p-2 bg-gray-100 dark:bg-gray-700/50 rounded-md text-sm">
+                                            <span className="font-semibold">{e.startTime} - {e.endTime}:</span> {e.title}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : <p className="text-sm text-gray-500 italic">No events scheduled for this hall.</p>}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
+// Main Admin Dashboard component
 const AdminDashboard = ({ currentUser, bookings, users, handleUpdateBookingStatus, handleAddNewUser, handleDeleteUser, handleUpdateAdminNote }) => {
     const [view, setView] = useState('requests');
     const [suggestionModalData, setSuggestionModalData] = useState(null);
     const [detailsModalData, setDetailsModalData] = useState(null);
-    const [rejectionData, setRejectionData] = useState(null); // State for the new modal
+    const [rejectionData, setRejectionData] = useState(null);
     const [filter, setFilter] = useState('All');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
@@ -45,6 +86,7 @@ const AdminDashboard = ({ currentUser, bookings, users, handleUpdateBookingStatu
             
             <div className="mb-6 flex justify-center border-b dark:border-gray-700">
                 <button onClick={() => setView('requests')} className={`px-4 py-2 font-semibold ${view === 'requests' ? 'border-b-2 border-indigo-500 text-indigo-500' : 'text-gray-500'}`}>Booking Requests</button>
+                <button onClick={() => setView('daily')} className={`px-4 py-2 font-semibold ${view === 'daily' ? 'border-b-2 border-indigo-500 text-indigo-500' : 'text-gray-500'}`}>Daily View</button>
                 <button onClick={() => setView('analytics')} className={`px-4 py-2 font-semibold ${view === 'analytics' ? 'border-b-2 border-indigo-500 text-indigo-500' : 'text-gray-500'}`}>Analytics</button>
                 <button onClick={() => setView('users')} className={`px-4 py-2 font-semibold ${view === 'users' ? 'border-b-2 border-indigo-500 text-indigo-500' : 'text-gray-500'}`}>User Management</button>
             </div>
@@ -101,6 +143,7 @@ const AdminDashboard = ({ currentUser, bookings, users, handleUpdateBookingStatu
                         </div>
                     </motion.div>
                 )}
+                {view === 'daily' && <DailyScheduleView allBookings={allBookings} />}
                 {view === 'analytics' && <motion.div key="analytics"><AnalyticsDashboard allBookings={allBookings} /></motion.div>}
                 {view === 'users' && <motion.div key="users"><UserManagement users={users} onAddUser={handleAddNewUser} onDeleteUser={handleDeleteUser} /></motion.div>}
             </AnimatePresence>
@@ -113,6 +156,7 @@ const AdminDashboard = ({ currentUser, bookings, users, handleUpdateBookingStatu
     );
 };
 
+// Main Admin component for access control
 export default function Admin({ currentUser, ...props }) {
     if (currentUser?.role !== 'admin') {
         return (

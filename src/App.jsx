@@ -62,21 +62,13 @@ export default function App() {
         const updatedBookingsOnDate = bookings[date]?.map(b => {
             if (b.id === bookingId) {
                 const updatedBooking = { ...b, status: newStatus };
-                if (newHall && b.hall !== newHall) {
-                    updatedBooking.originalHall = b.hall;
-                    updatedBooking.hall = newHall;
-                }
-                // --- THIS LOGIC ENSURES THE REASON IS SAVED ---
-                if (newStatus === 'rejected' && reason) {
-                    updatedBooking.rejectionReason = reason;
-                }
+                if (newHall && b.hall !== newHall) updatedBooking.originalHall = b.hall; updatedBooking.hall = newHall;
+                if (newStatus === 'rejected' && reason) updatedBooking.rejectionReason = reason;
                 return updatedBooking;
             }
             return b;
         });
-        if (updatedBookingsOnDate) {
-            setBookings({ ...bookings, [date]: updatedBookingsOnDate });
-        }
+        if (updatedBookingsOnDate) setBookings({ ...bookings, [date]: updatedBookingsOnDate });
     };
     
     const handleEditBooking = (editedBooking) => {
@@ -94,7 +86,7 @@ export default function App() {
             <main className={`flex-grow ${location.pathname === '/' ? '' : 'pt-16'}`}>
                 <AnimatePresence mode="wait">
                     <Routes location={location} key={location.pathname}>
-                        <Route index element={<Home />} />
+                        <Route index element={<Home currentUser={currentUser} />} />
                         <Route path="/facilities" element={<Facilities />} />
                         <Route path="/booking" element={<Booking {...pageProps} />} />
                         <Route path="/my-bookings" element={<MyBookings {...pageProps} allBookings={allBookings} />} />

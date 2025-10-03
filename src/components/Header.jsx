@@ -47,26 +47,24 @@ export default function Header({ isDarkMode, setIsDarkMode, isUserLoggedIn, curr
                         </div>
                     </Link>
                 </motion.div>
-
                 <div className="hidden md:flex items-center space-x-8">
                     {navItems.map(item => <NavLinkComponent key={item.to} {...item} />)}
                     {isUserLoggedIn && currentUser?.role === 'user' && <NavLinkComponent to="/my-bookings" label="My Bookings" />}
-                    {isUserLoggedIn && currentUser?.role === 'admin' && (
-                        <>
-                            <NavLinkComponent to="/admin" label="Dashboard" />
-                            <NavLinkComponent to="/analytics" label="Analytics" />
-                            <NavLinkComponent to="/user-management" label="Users" />
-                        </>
-                    )}
                 </div>
-
                 <div className="flex items-center space-x-2 sm:space-x-4">
                     <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                         {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
                     <div className="hidden sm:block">
                         {isUserLoggedIn ? (
-                            <button onClick={onLogout} className="bg-red-500 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-600">Logout</button>
+                            currentUser.role === 'admin' ? (
+                                <>
+                                    <Link to="/admin" className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-purple-700 mr-2">Dashboard</Link>
+                                    <button onClick={onLogout} className="bg-red-500 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-600">Logout</button>
+                                </>
+                            ) : (
+                                <button onClick={onLogout} className="bg-red-500 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-600">Logout</button>
+                            )
                         ) : (
                             <button onClick={onLoginClick} className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-indigo-700">Login</button>
                         )}
@@ -84,18 +82,16 @@ export default function Header({ isDarkMode, setIsDarkMode, isUserLoggedIn, curr
                         <ul className="flex flex-col items-start space-y-2 p-4">
                             {navItems.map(item => <li key={item.to} className="w-full"><NavLinkComponent {...item} /></li>)}
                             {isUserLoggedIn && currentUser?.role === 'user' && <li className="w-full"><NavLinkComponent to="/my-bookings" label="My Bookings" /></li>}
-                            {isUserLoggedIn && currentUser?.role === 'admin' && (
-                                <>
-                                    <li className="w-full"><NavLinkComponent to="/admin" label="Dashboard" /></li>
-                                    <li className="w-full"><NavLinkComponent to="/analytics" label="Analytics" /></li>
-                                    <li className="w-full"><NavLinkComponent to="/user-management" label="Users" /></li>
-                                </>
-                            )}
                             <li className="w-full pt-2">
                                 {isUserLoggedIn ? (
-                                    <button onClick={() => { onLogout(); setIsMenuOpen(false); }} className="w-full bg-red-500 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-600">Logout</button>
+                                    currentUser.role === 'admin' ? (
+                                        <div className="w-full flex flex-col gap-2">
+                                            <button onClick={() => { navigate('/admin'); setIsMenuOpen(false); }} className="w-full bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-semibold">Dashboard</button>
+                                            <button onClick={() => { onLogout(); setIsMenuOpen(false); }} className="w-full bg-red-500 text-white px-4 py-2 rounded-md text-sm font-semibold">Logout</button>
+                                        </div>
+                                    ) : ( <button onClick={() => { onLogout(); setIsMenuOpen(false); }} className="w-full bg-red-500 text-white px-4 py-2 rounded-md text-sm font-semibold">Logout</button> )
                                 ) : (
-                                    <button onClick={() => { onLoginClick(); setIsMenuOpen(false); }} className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-indigo-700">Login</button>
+                                    <button onClick={() => { onLoginClick(); setIsMenuOpen(false); }} className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-semibold">Login</button>
                                 )}
                             </li>
                         </ul>
