@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Navigate } from 'react-router-dom';
-import { RefreshCw, Edit, Trash2, Info, MessageCircleWarning } from 'lucide-react';
+import { RefreshCw, Edit, Trash2, Info, AlertTriangle } from 'lucide-react'; // Corrected icon name
 import BookingDetailsModal from '../components/BookingDetailsModal.jsx';
 import EditBookingModal from '../components/EditBookingModal.jsx';
 
@@ -57,11 +57,10 @@ export default function MyBookings({ allBookings, currentUser, handleUpdateBooki
                                         <span>Admin has re-assigned this booking from <strong>{booking.originalHall}</strong>.</span>
                                     </div>
                                 )}
-                                {/* --- THIS BLOCK DISPLAYS THE REJECTION REASON --- */}
                                 {booking.status === 'rejected' && booking.rejectionReason && (
                                     <div className="mt-3 pt-3 border-t dark:border-gray-700">
                                         <p className="text-xs font-semibold text-red-600 dark:text-red-400 flex items-center gap-2">
-                                            <MessageCircleWarning size={14} />
+                                            <AlertTriangle size={14} /> {/* Corrected icon name */}
                                             Admin's Reason:
                                         </p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 italic">
