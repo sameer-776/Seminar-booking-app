@@ -23,17 +23,37 @@ export default function App() {
     const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [showLogin, setShowLogin] = useState(false);
-    const [bookings, setBookings] = useState(data.initialBookings);
-    const [users, setUsers] = useState(data.users);
+
+    // ✅ Load from localStorage first, fallback to JSON data
+    const [bookings, setBookings] = useState(() => {
+        const saved = localStorage.getItem("bookings");
+        return saved ? JSON.parse(saved) : data.initialBookings;
+    });
+
+    const [users, setUsers] = useState(() => {
+        const saved = localStorage.getItem("users");
+        return saved ? JSON.parse(saved) : data.users;
+    });
 
     const location = useLocation();
     const navigate = useNavigate();
 
+    // ✅ Persist to localStorage whenever users/bookings change
+    useEffect(() => {
+        localStorage.setItem("users", JSON.stringify(users));
+    }, [users]);
+
+    useEffect(() => {
+        localStorage.setItem("bookings", JSON.stringify(bookings));
+    }, [bookings]);
+
+    // Theme switch
     useEffect(() => {
         if (isDarkMode) document.documentElement.classList.add('dark');
         else document.documentElement.classList.remove('dark');
     }, [isDarkMode]);
 
+    // 🔐 Authentication
     const handleLoginSuccess = (user) => {
         setIsUserLoggedIn(true);
         setCurrentUser(user);
@@ -46,18 +66,28 @@ export default function App() {
         setCurrentUser(null);
         navigate('/');
     };
-    
+
+    // 👤 User updates
     const handleUpdateUser = (updatedUser) => {
         setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
         setCurrentUser(updatedUser);
     };
 
-    const handleAddNewUser = (newUser) => setUsers([...users, newUser]);
+    const handleAddNewUser = (newUser) => {
+        setUsers(prev => [...prev, newUser]);
+        alert("✅ New user added and saved successfully!");
+    };
+
     const handleDeleteUser = (userId) => setUsers(users.filter(u => u.id !== userId));
 
+    const handleUpdateUserRole = (userId, newRole) => {
+        setUsers(users.map(u => (u.id === userId ? { ...u, role: newRole } : u)));
+    };
+
+    // 🗓️ Booking operations
     const handleUpdateAdminNote = (bookingId, date, newNote) => {
         const dateKey = new Date(date).toISOString().split('T')[0];
-        const updatedBookingsOnDate = bookings[dateKey]?.map(b => 
+        const updatedBookingsOnDate = bookings[dateKey]?.map(b =>
             b.id === bookingId ? { ...b, adminNotes: newNote } : b
         );
         if (updatedBookingsOnDate) setBookings({ ...bookings, [dateKey]: updatedBookingsOnDate });
@@ -79,14 +109,15 @@ export default function App() {
                     updatedBooking.hall = newHall;
                 }
                 if (newStatus === 'rejected' && reason) updatedBooking.rejectionReason = reason;
-                if (newStatus === 'cancelled' && currentUser.role === 'user') updatedBooking.adminNotes = `Cancelled by user on ${new Date().toLocaleDateString()}.`;
+                if (newStatus === 'cancelled' && currentUser?.role === 'user')
+                    updatedBooking.adminNotes = `Cancelled by user on ${new Date().toLocaleDateString()}.`;
                 return updatedBooking;
             }
             return b;
         });
         if (updatedBookingsOnDate) setBookings({ ...bookings, [dateKey]: updatedBookingsOnDate });
     };
-    
+
     const handleEditBooking = (editedBooking) => {
         const { date, id } = editedBooking;
         const dateKey = new Date(date).toISOString().split('T')[0];
@@ -94,12 +125,36 @@ export default function App() {
         if (updatedBookingsOnDate) setBookings({ ...bookings, [dateKey]: updatedBookingsOnDate });
     };
 
-    const allBookings = Object.entries(bookings).flatMap(([date, dateBookings]) => dateBookings.map(b => ({ ...b, date })));
-    const pageProps = { isUserLoggedIn, currentUser, setShowLogin, bookings, users, handleBookingRequest, handleUpdateBookingStatus, handleEditBooking, handleAddNewUser, handleDeleteUser, handleUpdateAdminNote };
+    const allBookings = Object.entries(bookings).flatMap(([date, dateBookings]) =>
+        dateBookings.map(b => ({ ...b, date }))
+    );
+
+    const pageProps = {
+        isUserLoggedIn,
+        currentUser,
+        setShowLogin,
+        bookings,
+        users,
+        handleBookingRequest,
+        handleUpdateBookingStatus,
+        handleEditBooking,
+        handleAddNewUser,
+        handleDeleteUser,
+        handleUpdateAdminNote,
+        handleUpdateUserRole
+    };
 
     return (
         <div className="flex flex-col min-h-screen font-sans bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-            <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} isUserLoggedIn={isUserLoggedIn} currentUser={currentUser} onLogout={handleLogout} onLoginClick={() => setShowLogin(true)} />
+            <Header
+                isDarkMode={isDarkMode}
+                setIsDarkMode={setIsDarkMode}
+                isUserLoggedIn={isUserLoggedIn}
+                currentUser={currentUser}
+                onLogout={handleLogout}
+                onLoginClick={() => setShowLogin(true)}
+            />
+
             <main className={`flex-grow ${location.pathname === '/' ? '' : 'pt-16'}`}>
                 <AnimatePresence mode="wait">
                     <Routes location={location} key={location.pathname}>
@@ -114,9 +169,17 @@ export default function App() {
                     </Routes>
                 </AnimatePresence>
             </main>
+
             <Footer />
+
             <AnimatePresence>
-                {showLogin && (<LoginModal users={users} onClose={() => setShowLogin(false)} onLoginSuccess={handleLoginSuccess} />)}
+                {showLogin && (
+                    <LoginModal
+                        users={users}
+                        onClose={() => setShowLogin(false)}
+                        onLoginSuccess={handleLoginSuccess}
+                    />
+                )}
             </AnimatePresence>
         </div>
     );

@@ -14,14 +14,13 @@ export default function LoginModal({ users, onClose, onLoginSuccess }) {
 
         if (foundUser) {
             setError('');
-            onLoginSuccess({ name: foundUser.name, role: foundUser.role, department: foundUser.department });
+            onLoginSuccess(foundUser);
         } else {
             setError('Invalid email or password.');
         }
     };
 
     return (
-        // These classes make it a full-screen, centered overlay
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
