@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import data from './bookings.json';
+
+// Import Layout & Components
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
 import LoginModal from './components/LoginModal.jsx';
+
+// Import Pages
 import Home from './pages/Home.jsx';
 import Facilities from './pages/Facilities.jsx';
 import Booking from './pages/Booking.jsx';
@@ -12,6 +16,7 @@ import Admin from './pages/Admin.jsx';
 import MyBookings from './pages/MyBookings.jsx';
 import Analytics from './pages/Analytics.jsx';
 import UserManagementPage from './pages/UserManagementPage.jsx';
+import UserProfile from './pages/UserProfile.jsx';
 
 export default function App() {
     const [isDarkMode, setIsDarkMode] = useState(true);
@@ -41,15 +46,21 @@ export default function App() {
         setCurrentUser(null);
         navigate('/');
     };
+    
+    const handleUpdateUser = (updatedUser) => {
+        setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+        setCurrentUser(updatedUser);
+    };
 
     const handleAddNewUser = (newUser) => setUsers([...users, newUser]);
     const handleDeleteUser = (userId) => setUsers(users.filter(u => u.id !== userId));
 
     const handleUpdateAdminNote = (bookingId, date, newNote) => {
-        const updatedBookingsOnDate = bookings[date]?.map(b => 
+        const dateKey = new Date(date).toISOString().split('T')[0];
+        const updatedBookingsOnDate = bookings[dateKey]?.map(b => 
             b.id === bookingId ? { ...b, adminNotes: newNote } : b
         );
-        if (updatedBookingsOnDate) setBookings({ ...bookings, [date]: updatedBookingsOnDate });
+        if (updatedBookingsOnDate) setBookings({ ...bookings, [dateKey]: updatedBookingsOnDate });
     };
 
     const handleBookingRequest = (newBooking) => {
@@ -59,22 +70,28 @@ export default function App() {
     };
 
     const handleUpdateBookingStatus = (date, bookingId, newStatus, newHall = null, reason = null) => {
-        const updatedBookingsOnDate = bookings[date]?.map(b => {
+        const dateKey = new Date(date).toISOString().split('T')[0];
+        const updatedBookingsOnDate = bookings[dateKey]?.map(b => {
             if (b.id === bookingId) {
-                const updatedBooking = { ...b, status: newStatus };
-                if (newHall && b.hall !== newHall) updatedBooking.originalHall = b.hall; updatedBooking.hall = newHall;
+                const updatedBooking = { ...b, status: newStatus, rejectionReason: null };
+                if (newHall && b.hall !== newHall) {
+                    updatedBooking.originalHall = b.hall;
+                    updatedBooking.hall = newHall;
+                }
                 if (newStatus === 'rejected' && reason) updatedBooking.rejectionReason = reason;
+                if (newStatus === 'cancelled' && currentUser.role === 'user') updatedBooking.adminNotes = `Cancelled by user on ${new Date().toLocaleDateString()}.`;
                 return updatedBooking;
             }
             return b;
         });
-        if (updatedBookingsOnDate) setBookings({ ...bookings, [date]: updatedBookingsOnDate });
+        if (updatedBookingsOnDate) setBookings({ ...bookings, [dateKey]: updatedBookingsOnDate });
     };
     
     const handleEditBooking = (editedBooking) => {
         const { date, id } = editedBooking;
-        const updatedBookingsOnDate = bookings[date]?.map(b => (b.id === id ? editedBooking : b));
-        if (updatedBookingsOnDate) setBookings({ ...bookings, [date]: updatedBookingsOnDate });
+        const dateKey = new Date(date).toISOString().split('T')[0];
+        const updatedBookingsOnDate = bookings[dateKey]?.map(b => (b.id === id ? editedBooking : b));
+        if (updatedBookingsOnDate) setBookings({ ...bookings, [dateKey]: updatedBookingsOnDate });
     };
 
     const allBookings = Object.entries(bookings).flatMap(([date, dateBookings]) => dateBookings.map(b => ({ ...b, date })));
@@ -93,6 +110,7 @@ export default function App() {
                         <Route path="/admin" element={<Admin {...pageProps} />} />
                         <Route path="/analytics" element={<Analytics currentUser={currentUser} allBookings={allBookings} />} />
                         <Route path="/user-management" element={<UserManagementPage {...pageProps} />} />
+                        <Route path="/profile" element={<UserProfile currentUser={currentUser} onUpdateUser={handleUpdateUser} />} />
                     </Routes>
                 </AnimatePresence>
             </main>

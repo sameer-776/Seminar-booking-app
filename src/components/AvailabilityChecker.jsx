@@ -1,9 +1,6 @@
-// src/components/AvailabilityChecker.jsx
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
-// This sub-component now has its full implementation
 const TimeSlots = ({ date, bookingsForDate, onSelect, onBack, selectedHall }) => {
     const slots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
     const [startTime, setStartTime] = useState('');
@@ -15,7 +12,7 @@ const TimeSlots = ({ date, bookingsForDate, onSelect, onBack, selectedHall }) =>
 
     const handleStartTimeChange = (e) => {
         setStartTime(e.target.value);
-        setEndTime(''); // Reset end time when start time changes
+        setEndTime('');
     };
 
     const getAvailableEndTimes = () => {
@@ -23,15 +20,20 @@ const TimeSlots = ({ date, bookingsForDate, onSelect, onBack, selectedHall }) =>
         const startIndex = slots.indexOf(startTime);
         const available = [];
         for (let i = startIndex; i < slots.length; i++) {
-            if (isSlotBooked(slots[i])) {
-                break;
-            }
+            if (isSlotBooked(slots[i])) break;
             const endTimeValue = (i + 1 < slots.length) ? slots[i + 1] : `${parseInt(slots[i].split(':')[0]) + 1}:00`;
             available.push({ label: `${slots[i]} - ${endTimeValue}`, value: endTimeValue });
         }
         return available;
     };
-    const formatDate = (d) => d.toISOString().split('T')[0];
+    
+    // --- THIS IS THE CORRECTED DATE FORMATTING FUNCTION ---
+    const formatDate = (d) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
 
     return (
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full lg:max-w-xs bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl">
@@ -39,19 +41,19 @@ const TimeSlots = ({ date, bookingsForDate, onSelect, onBack, selectedHall }) =>
             <div className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium mb-1">Start Time</label>
-                    <select value={startTime} onChange={handleStartTimeChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select value={startTime} onChange={handleStartTimeChange} className="w-full px-3 py-2 border rounded-md bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                         <option value="">Select start time</option>
                         {slots.map(slot => <option key={slot} value={slot} disabled={isSlotBooked(slot)}>{slot}</option>)}
                     </select>
                 </div>
                 <div>
                     <label className="block text-sm font-medium mb-1">End Time</label>
-                    <select value={endTime} onChange={e => setEndTime(e.target.value)} disabled={!startTime} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select value={endTime} onChange={e => setEndTime(e.target.value)} disabled={!startTime} className="w-full px-3 py-2 border rounded-md bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                         <option value="">Select end time</option>
                         {getAvailableEndTimes().map(et => <option key={et.value} value={et.value}>{et.label}</option>)}
                     </select>
                 </div>
-                <button onClick={() => onSelect(formatDate(date), startTime, endTime)} disabled={!startTime || !endTime} className="w-full mt-2 py-2 px-4 font-semibold rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Confirm & Request</button>
+                <button onClick={() => onSelect(formatDate(date), startTime, endTime)} disabled={!startTime || !endTime} className="w-full mt-2 py-2 px-4 font-semibold rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">Confirm & Request</button>
             </div>
         </motion.div>
     );
@@ -66,18 +68,21 @@ export default function AvailabilityChecker({ bookings, onSlotSelect, selectedHa
     const daysInMonth = getDaysInMonth(date.getFullYear(), date.getMonth());
     const days = [...Array(daysInMonth).keys()];
     const blanks = [...Array(firstDayOfMonth).keys()];
-    const formatDate = (d) => d.toISOString().split('T')[0];
+    
+    // --- THIS IS THE CORRECTED DATE FORMATTING FUNCTION ---
+    const formatDate = (d) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
 
     const getDayStatus = (dayDate) => {
         const bookingsOnDay = bookings[formatDate(dayDate)]?.filter(b => b.hall === selectedHall && b.status !== 'rejected') || [];
-        if (bookingsOnDay.length === 0) {
-            return 'bg-green-100 dark:bg-green-900/50 hover:bg-green-200 text-green-800 dark:text-green-300'; // Available
-        }
+        if (bookingsOnDay.length === 0) return 'bg-green-100 dark:bg-green-900/50 hover:bg-green-200 text-green-800 dark:text-green-300';
         const hasPending = bookingsOnDay.some(b => b.status === 'pending');
-        if (hasPending) {
-            return 'bg-yellow-100 dark:bg-yellow-900/50 hover:bg-yellow-200 text-yellow-800 dark:text-yellow-300'; // Pending
-        }
-        return 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300'; // Booked
+        if (hasPending) return 'bg-yellow-100 dark:bg-yellow-900/50 hover:bg-yellow-200 text-yellow-800 dark:text-yellow-300';
+        return 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300';
     };
 
     return (
@@ -99,12 +104,17 @@ export default function AvailabilityChecker({ bookings, onSlotSelect, selectedHa
                             const dayStatusClass = getDayStatus(dayDate);
                             const isSelected = selectedDate && formatDate(dayDate) === formatDate(selectedDate);
                             return (
-                                <div key={day} onClick={() => setSelectedDate(dayDate)}
+                                <div key={day} onClick={() => setSelectedDate(dayDate)} 
                                     className={`p-2 rounded-lg cursor-pointer transition-colors text-sm ${isSelected ? 'ring-2 ring-indigo-500' : ''} ${dayStatusClass}`}>
                                     {day + 1}
                                 </div>
                             );
                         })}
+                    </div>
+                    <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs">
+                        <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/50 border border-green-300"></div><span>Available</span></div>
+                        <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-300"></div><span>Pending</span></div>
+                        <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/50 border border-red-300"></div><span>Booked</span></div>
                     </div>
                 </div>
                 {selectedDate && <TimeSlots date={selectedDate} bookingsForDate={bookings[formatDate(selectedDate)] || []} onSelect={onSlotSelect} onBack={() => setSelectedDate(null)} selectedHall={selectedHall} />}

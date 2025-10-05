@@ -23,21 +23,15 @@ export default function Booking(props) {
             setBookingFlowView('form');
         }
     };
-
-    useEffect(() => {
-        if (props.isUserLoggedIn && bookingDetails && bookingFlowView !== 'form') {
-            setBookingFlowView('form');
-        }
-    }, [props.isUserLoggedIn, bookingDetails, bookingFlowView]);
     
-    const capacity = selectedHall ? HALL_FACILITIES[selectedHall]?.find(f => f.capacity)?.capacity || 300 : 300;
+    const capacity = selectedHall ? (HALL_FACILITIES[selectedHall]?.find(f => f.capacity)?.capacity || 200) : 200;
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="container mx-auto px-4 sm:px-6 pb-12 md:pb-24">
             <div className="text-center mb-12">
                 <h1 className="text-4xl md:text-5xl font-extrabold mb-4">Book a Seminar Hall</h1>
             </div>
-            
+
             <AnimatePresence mode="wait">
                 {bookingFlowView === 'select-hall' && (
                     <motion.div key="select-hall" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -56,7 +50,6 @@ export default function Booking(props) {
 
                 {bookingFlowView === 'form' && (
                     <BookingForm
-                        key="form"
                         currentUser={props.currentUser}
                         details={bookingDetails}
                         goBack={() => setBookingFlowView('request')}

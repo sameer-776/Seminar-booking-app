@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Users, BarChart2, Clock, CheckCircle, XCircle, Pencil, ShieldAlert } from 'lucide-react';
+import { Users, BarChart2, Clock, CheckCircle, XCircle, Pencil, ShieldAlert, Undo2 } from 'lucide-react';
+import { formatDateDDMMYYYY } from '../utils/dateFormatter.js';
+import { SEMINAR_HALLS } from '../data.js';
+
 import StatCard from '../components/StatCard.jsx';
 import SuggestionModal from '../components/SuggestionModal.jsx';
 import BookingDetailsModal from '../components/BookingDetailsModal.jsx';
 import AnalyticsDashboard from '../components/AnalyticsDashboard.jsx';
 import UserManagement from '../components/UserManagement.jsx';
 import RejectionModal from '../components/RejectionModal.jsx';
-import { SEMINAR_HALLS } from '../data.js';
 
 // Sub-component for the daily schedule view
 const DailyScheduleView = ({ allBookings }) => {
@@ -113,17 +115,29 @@ const AdminDashboard = ({ currentUser, bookings, users, handleUpdateBookingStatu
                                         {currentItems.map((b) => (
                                             <tr key={b.id} onClick={() => setDetailsModalData(b)} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer">
                                                 <td className="p-3 font-semibold">{b.title}<div className="text-xs font-normal text-gray-500">{b.hall}</div></td>
-                                                <td className="p-3">{b.requestedBy}<div className="text-xs text-gray-500">({b.department})</div></td>
-                                                <td className="p-3 text-sm">{b.date}<div className="text-xs">{b.startTime}-{b.endTime}</div></td>
+                                                <td className="p-3">{b.requestedBy}</td>
+                                                <td className="p-3 text-sm">{formatDateDDMMYYYY(b.date)}<div className="text-xs">{b.startTime}-{b.endTime}</div></td>
                                                 <td className="p-3"><span className={`px-2 py-1 rounded-full text-xs font-semibold capitalize ${b.status === 'booked' ? 'bg-green-200 text-green-800' : b.status === 'pending' ? 'bg-yellow-200 text-yellow-800' : b.status === 'rejected' ? 'bg-red-200 text-red-800' : 'bg-gray-400 text-white'}`}>{b.status}</span></td>
                                                 <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                                                    <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                                                    <div className="flex items-center justify-center space-x-1">
                                                         {b.status === 'pending' && (
                                                             <>
                                                                 <button title="Approve" onClick={() => handleUpdateBookingStatus(b.date, b.id, 'booked')} className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50" disabled={!!findClash(b)}><CheckCircle size={16} /></button>
                                                                 <button title="Reject" onClick={() => setRejectionData(b)} className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600"><XCircle size={16} /></button>
                                                                 <button title="Re-allocate Hall" onClick={() => setSuggestionModalData(b)} className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"><Pencil size={16} /></button>
                                                             </>
+                                                        )}
+                                                        {b.status === 'booked' && (
+                                                            <>
+                                                                <button title="Cancel Booking" onClick={() => setRejectionData(b)} className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600"><XCircle size={16} /></button>
+                                                                <button title="Re-allocate Hall" onClick={() => setSuggestionModalData(b)} className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"><Pencil size={16} /></button>
+                                                            </>
+                                                        )}
+                                                        {/* --- NEW ACTION FOR REJECTED REQUESTS --- */}
+                                                        {b.status === 'rejected' && (
+                                                             <button title="Re-open Request" onClick={() => handleUpdateBookingStatus(b.date, b.id, 'pending')} className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+                                                                <Undo2 size={16} />
+                                                            </button>
                                                         )}
                                                     </div>
                                                 </td>
@@ -134,18 +148,20 @@ const AdminDashboard = ({ currentUser, bookings, users, handleUpdateBookingStatu
                                 {filteredBookings.length === 0 && <p className="text-center text-gray-500 py-8">No bookings found for the selected filter.</p>}
                             </div>
                             {pageCount > 1 && (
-                                <div className="mt-6 flex justify-center items-center space-x-2">
-                                    {Array.from({ length: pageCount }, (_, i) => i + 1).map(number => (
-                                        <button key={number} onClick={() => handlePageChange(number)} className={`px-3 py-1 text-sm rounded-md ${currentPage === number ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}>{number}</button>
-                                    ))}
+                                <div className="mt-6 flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
+                                    <span>Page <strong>{currentPage}</strong> of <strong>{pageCount}</strong></span>
+                                    <div className="flex items-center space-x-2">
+                                        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-1 rounded disabled:opacity-50 hover:bg-gray-200 dark:hover:bg-gray-700">Prev</button>
+                                        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === pageCount} className="px-3 py-1 rounded disabled:opacity-50 hover:bg-gray-200 dark:hover:bg-gray-700">Next</button>
+                                    </div>
                                 </div>
                             )}
                         </div>
                     </motion.div>
                 )}
                 {view === 'daily' && <DailyScheduleView allBookings={allBookings} />}
-                {view === 'analytics' && <motion.div key="analytics"><AnalyticsDashboard allBookings={allBookings} /></motion.div>}
-                {view === 'users' && <motion.div key="users"><UserManagement users={users} onAddUser={handleAddNewUser} onDeleteUser={handleDeleteUser} /></motion.div>}
+                {view === 'analytics' && <motion.div key="analytics" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}><AnalyticsDashboard allBookings={allBookings} /></motion.div>}
+                {view === 'users' && <motion.div key="users" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}><UserManagement users={users} onAddUser={handleAddNewUser} onDeleteUser={handleDeleteUser} /></motion.div>}
             </AnimatePresence>
             <AnimatePresence>
                 {suggestionModalData && <SuggestionModal booking={suggestionModalData} allBookings={allBookings} onClose={() => setSuggestionModalData(null)} onApproveWithChange={(booking, newHall) => { handleUpdateBookingStatus(booking.date, booking.id, 'booked', newHall); setSuggestionModalData(null); }} />}
